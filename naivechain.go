@@ -7,19 +7,27 @@ import (
 	"time"
 )
 
-type BlockChain struct {
-	hash hash.Hash
-	head *Block
-	tail *Block
-	len  uint64
-}
-
+// Block represents a block within a BlockChain
 type Block struct {
 	index     uint64
 	data      []byte
 	timestamp time.Time
 	hash      []byte
+	prevHash  []byte
 	prev      *Block
+}
+
+// Previous returns the previous block in the BlockChain
+func (b Block) Previous() Block {
+	return *b.prev
+}
+
+// BlockChain represents a chain of immutable hashed Blocks
+type BlockChain struct {
+	hash hash.Hash
+	head *Block
+	tail *Block
+	len  uint64
 }
 
 // New creates a new BlockChain and genesis Block with the data and Hash specified
@@ -45,6 +53,7 @@ func New(data []byte, hash hash.Hash) *BlockChain {
 
 	// Hash the Block and store the result on itself
 	b.hash = bc.hashBlock(b)
+	b.prevHash = []byte("")
 
 	// Set the head and tail Blocks of the BlockChain to the new Block
 	bc.head = &b
@@ -85,6 +94,7 @@ func (bc *BlockChain) Write(data []byte) *BlockChain {
 
 	// Hash the Block and store the result on itself
 	b.hash = bc.hashBlock(b)
+	b.prevHash = bc.tail.hash
 
 	// Set the tail of the BlockChain to the new Block
 	bc.tail = &b
@@ -105,6 +115,8 @@ func (bc *BlockChain) Print() {
 		fmt.Println("index: ", b.index)
 		fmt.Println("data: ", string(b.data))
 		fmt.Printf("hash: %x", b.hash)
+		fmt.Println("")
+		fmt.Printf("prev hash: %x", b.prevHash)
 		fmt.Println("")
 		if b.prev != nil {
 			fmt.Println("previous: ", string(b.prev.data))
